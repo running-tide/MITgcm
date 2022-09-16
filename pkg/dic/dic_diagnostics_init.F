@@ -29,6 +29,45 @@ C     !LOCAL VARIABLES:
 C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
 C     Define diagnostics Names :
 
+
+      diagName  = 'RTDIC   '
+      diagTitle = 'RT DIC source (mol/m3/s)'
+      diagUnits = 'mol/m3/sec      '
+      diagCode  = 'SMRP    MR      '
+      CALL DIAGNOSTICS_ADDTOLIST( diagNum,
+     I       diagName, diagCode, diagUnits, diagTitle, 0, myThid )
+
+
+      diagName  = 'GBIO   '
+      diagTitle = 'Biological C source (mol C/m3/s)'
+      diagUnits = 'mol C/m3/sec      '
+      diagCode  = 'SMRP    MR      '
+      CALL DIAGNOSTICS_ADDTOLIST( diagNum,
+     I       diagName, diagCode, diagUnits, diagTitle, 0, myThid )
+
+
+
+      diagName  = 'GDIC    '
+      diagTitle = 'DIC source (mol/m3/s)'
+      diagUnits = 'mol/m3/sec      '
+      diagCode  = 'SMRP    MR      '
+      CALL DIAGNOSTICS_ADDTOLIST( diagNum,
+     I       diagName, diagCode, diagUnits, diagTitle, 0, myThid )
+
+
+
+
+
+      diagName  = 'SPO4    '
+      diagTitle = 'PO4 source (mol/m3/s)'
+      diagUnits = 'mol/m3/sec      '
+      diagCode  = 'SMRP    MR      '
+      CALL DIAGNOSTICS_ADDTOLIST( diagNum,
+     I       diagName, diagCode, diagUnits, diagTitle, 0, myThid )
+
+
+
+
       diagName  = 'DICBIOA '
       diagTitle = 'Biological Productivity (mol/m3/s)'
       diagUnits = 'mol/m3/sec      '

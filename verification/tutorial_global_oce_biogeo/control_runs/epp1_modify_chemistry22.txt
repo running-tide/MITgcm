@@ -1,0 +1,6 @@
+54 60  i_start, i_end
+19 23  j_start, j_end
+5184301 5184661 t_start,t_end
+-5.8685e-9   dic tendency [mol/m^3/s] 
+0.008547   redfield fration P:C  (default assumed in the model 1/117=0.008547)
+16.         redfield ratio (N:P) default is 16

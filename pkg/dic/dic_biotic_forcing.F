@@ -55,6 +55,9 @@ C  myThid               :: thread number
       INTEGER myIter
       _RL myTime
       INTEGER myThid
+      
+
+      
 
 #ifdef ALLOW_PTRACERS
 #ifdef DIC_BIOTIC
@@ -90,6 +93,8 @@ C  freefe                 :: iron not bound to ligand
       _RL  exportflux(1-OLx:sNx+OLx,1-OLy:sNy+OLy,Nr)
       _RL  CAR_S(1-OLx:sNx+OLx,1-OLy:sNy+OLy,Nr)
       _RL  cflux(1-OLx:sNx+OLx,1-OLy:sNy+OLy,Nr)
+      _RL  RTdic(1-OLx:sNx+OLx,1-OLy:sNy+OLy,Nr)
+      _RL  GBIO(1-OLx:sNx+OLx,1-OLy:sNy+OLy,Nr)
 #ifdef ALLOW_O2
       _RL  GO2(1-OLx:sNx+OLx,1-OLy:sNy+OLy,Nr)
 #endif
@@ -106,6 +111,14 @@ C  freefe                 :: iron not bound to ligand
       INTEGER kBottom
 # endif
 #endif
+
+      LOGICAL do_tendency_mod      
+  	  INTEGER mod_istart,mod_iend
+  	  INTEGER mod_jstart,mod_jend
+      INTEGER mod_tstart,mod_tend
+	  REAL RT_dic_tend,RT_Rnp,RT_Rpc
+      CHARACTER(22) FILE_NAME
+
 CEOP
 
 #ifdef ALLOW_DEBUG
@@ -134,6 +147,8 @@ CEOP
            exportflux(i,j,k)=0. _d 0
            cflux(i,j,k)   =0. _d 0
            CAR_S(i,j,k)   =0. _d 0
+           RTdic(i,j,k)   =0. _d 0 
+           GBIO(i,k,k)    =0. _d 0
 #ifdef ALLOW_O2
            GO2(i,j,k)     =0. _d 0
 #endif
@@ -322,10 +337,16 @@ C include iron sediment source using the flux of po4 into bottom layer
          ENDDO
        ENDDO
 
+
+      
+             
+
+
+
        IF ( useOBCS ) THEN
         DO k=1,Nr
          DO j=jMin,jMax
-          DO i=iMin,iMax
+          DO i=iMin,iMax          
             GDIC(i,j,k) = GDIC(i,j,k)*maskInC(i,j,bi,bj)
             GALK(i,j,k) = GALK(i,j,k)*maskInC(i,j,bi,bj)
             GPO4(i,j,k) = GPO4(i,j,k)*maskInC(i,j,bi,bj)
@@ -342,9 +363,129 @@ C include iron sediment source using the flux of po4 into bottom layer
        ENDIF
 
 C update
+C       print *,"GDIC",myThid,bi,bj 
+C       print *,"i:",imin,iMax
+C       print *,'j:',jmin,jMax
+C       print *,'myiter',myIter
+C       print *,'mytime',mytime
+C       print *,'gdic_1',gdic(:,:,1)	
+C       print *,'gdic_Nr',gdic(:,:,Nr)	  
+C
+C
+C       if (myiter==5184039) then
+C   
+C        if ((bi == 1) .and. (bj == 1)) then 
+C         open (unit = 112, file = 'Output_1_1.txt')
+C   	    endif
+C   	   
+C   	    if ((bi == 1) .and. (bj == 2)) then 
+C         open (unit = 112, file = 'Output_1_2.txt')
+C   	    endif
+C   	   
+C   	   
+C   	    if ((bi == 2) .and. (bj == 1)) then 
+C         open (unit = 112, file = 'Output_2_1.txt')
+C   	    endif
+C   	   
+C   	   
+C   	    if ((bi == 2) .and. (bj == 2)) then 
+C         open (unit = 112, file = 'Output_2_2.txt')
+C   	    endif
+C   
+C   
+C       do j=jmin,jMax
+C         do i=imin,iMax
+C         	write(112,*) i,',',j,',',PTR_DIC(i,j,1)
+C         enddo
+C       enddo
+C       close(112)
+C       
+C       endif
+       
+             
+     
+     
+     
+C get biological forcing before we modify GPO4
+       
+         DO k=1,Nr
+          DO j=jMin,jMax
+          DO i=iMin,iMax
+            GBIO(i,j,k)=R_CP*GPO4(i,j,k)  
+           ENDDO
+          ENDDO
+         ENDDO
+
+       
+       
+       
+       IF ((bi == 1) .and. (bj == 1)) THEN
+          file_name = 'modify_chemistry11.txt'
+   	   ELSEIF ((bi == 1) .and. (bj == 2)) THEN 
+   	      file_name = 'modify_chemistry12.txt'
+   	   ELSEIF ((bi == 2) .and. (bj == 1)) THEN 
+   	     file_name = 'modify_chemistry21.txt'
+   	   ELSEIF ((bi == 2) .and. (bj == 2)) THEN 
+   	     file_name = 'modify_chemistry22.txt'
+   	   ENDIF
+   	  
+                
+        print *,'file_name',file_name
+        
+          
+      INQUIRE( FILE=file_name, EXIST=do_tendency_mod)
+      
+      IF (do_tendency_mod) THEN
+      
+C  READ DATA      
+         OPEN(222,FILE=file_name,FORM='FORMATTED') 
+	     READ(222,*) mod_istart,mod_iend
+         READ(222,*) mod_jstart,mod_jend
+         READ(222,*) mod_tstart,mod_tend
+	     READ(222,*) RT_dic_tend
+	     READ(222,*) RT_Rpc
+	     READ(222,*) RT_Rnp
+	     CLOSE(222) 
+
+
+C	     PRINT *,'i:',mod_istart,mod_iend
+C         PRINT *,'j:', mod_jstart,mod_jend
+C         PRINT *, 't:', mod_tstart,mod_tend
+	     PRINT *, 'RT_dic_tend:', RT_dic_tend
+	     PRINT *, 'RT_Rpc:',RT_Rpc
+	     PRINT *, 'RT_Rnp:',RT_Rnp
+
+
+
+
+
+
+
+
+C APPLY RT forcings to the upper ocean layer
+
+
+       IF ((myiter .ge. mod_tstart) .and. (myiter .lt. mod_tend)) THEN
+       
+        DO I=MOD_ISTART,MOD_IEND
+       	 DO J=MOD_JSTART,mod_jend
+       	 	GDIC(I,J,1)=GDIC(I,J,1)+RT_dic_tend
+       	 	GALK(I,J,1)=GALK(I,J,1)-RT_dic_tend*RT_Rpc*RT_Rnp
+       	    GPO4(I,J,1)=GPO4(I,J,1)+RT_dic_tend*RT_Rpc 
+       	    RTdic(I,J,1)= RT_dic_tend
+       	 ENDDO 
+       	 ENDDO 	
+       
+       ENDIF 
+	
+	   ENDIF	
+		
+		
+
        DO k=1,Nr
          DO j=jMin,jMax
           DO i=iMin,iMax
+          
            PTR_DIC(i,j,k)=
      &      PTR_DIC(i,j,k)+GDIC(i,j,k)*PTRACERS_dTLev(k)
            PTR_ALK(i,j,k)=
@@ -381,6 +522,7 @@ c find free iron and get rid of insoluble part
 #ifdef ALLOW_TIMEAVE
 C save averages
        IF ( PTRACERS_taveFreq.GT.0. ) THEN
+        print *,"Doing time averages"
         DO k=1,Nr
          DO j=jMin,jMax
           DO i=iMin,iMax
@@ -423,6 +565,11 @@ C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
 
 #ifdef ALLOW_DIAGNOSTICS
       IF ( useDiagnostics ) THEN
+C        print *,'GPO4',GPO4
+       CALL DIAGNOSTICS_FILL(GBIO  , 'GBIO   '  ,0,Nr,2,bi,bj,myThid)
+        CALL DIAGNOSTICS_FILL(RTdic  , 'RTDIC   '  ,0,Nr,2,bi,bj,myThid)
+        CALL DIAGNOSTICS_FILL(GDIC  , 'GDIC    '   ,0,Nr,2,bi,bj,myThid)
+        CALL DIAGNOSTICS_FILL(GPO4  , 'SPO4    '   ,0,Nr,2,bi,bj,myThid)
         CALL DIAGNOSTICS_FILL(BIOac  ,'DICBIOA ',0,Nr,2,bi,bj,myThid)
         CALL DIAGNOSTICS_FILL(CAR    ,'DICCARB ',0,Nr,2,bi,bj,myThid)
         CALL DIAGNOSTICS_FILL(pCO2   ,'DICPCO2 ',0,1 ,1,bi,bj,myThid)

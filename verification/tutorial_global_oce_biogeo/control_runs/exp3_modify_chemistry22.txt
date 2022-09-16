@@ -1,0 +1,6 @@
+54 60  i_start, i_end
+19 23  j_start, j_end
+5184301 5184661 t_start,t_end
+-5.8685e-10   dic tendency [mol/m^3/s] 
+0.   alk tendency  [mol/m^3/s]
+0.   po4 tendency  [mol/m^3/s]

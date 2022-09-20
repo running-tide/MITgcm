@@ -128,6 +128,15 @@ C                  read in rainRatioUniform and filled in 2d array rain_ratio
      &          DIC_chlaFile,
      &          DIC_forcingPeriod, DIC_forcingCycle,
      &          dic_int1, dic_int2, dic_int3, dic_int4, dic_pCO2
+     
+      NAMELIST /RT_PERT/
+     &  rt_do_pert, 
+     &  rt_minlat, rt_maxlat, rt_minlon, rt_maxlon,
+     &  rt_mintime,rt_maxtime,  
+     &  rt_dic_tend, rt_r_pc, rt_r_np 
+     
+     
+     
 
 C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
 
@@ -184,6 +193,24 @@ C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
 c default periodic forcing to same as for physics
        DIC_forcingPeriod = externForcingPeriod
        DIC_forcingCycle  = externForcingCycle
+c default no rt perturbation
+c set other parameters to unset
+	   rt_do_pert = .true.
+	   rt_minlat = UNSET_RL
+	   rt_maxlat = UNSET_RL
+       rt_minlon = UNSET_RL
+       rt_maxlon = UNSET_RL
+       rt_mintime = UNSET_I
+       rt_maxtime = UNSET_I
+       rt_dic_tend = UNSET_RL
+       rt_r_pc = UNSET_RL
+       rt_r_np = UNSET_RL
+	   
+	   
+	   
+	   
+	   	       
+       
 
       WRITE(msgBuf,'(A)') ' DIC_READPARMS: opening data.dic'
       CALL PRINT_MESSAGE( msgBuf, standardMessageUnit,
@@ -204,6 +231,10 @@ C-    Biotic parameters
 
 C-    forcing filenames and parameters
       READ(UNIT=iUnit,NML=DIC_FORCING)
+C - RT perturbation
+      READ(UNIT=iUnit,NML=RT_PERT)	
+		
+
 
       WRITE(msgBuf,'(A)')
      &   ' DIC_READPARMS: finished reading data.dic'
@@ -434,6 +465,115 @@ C- namelist DIC_FORCING
      &  '  /*  */')
        CALL WRITE_0D_RL( dic_pCO2, INDEX_NONE,'dic_pCO2 =',
      &  ' /* Atmospheric pCO2 to be read in data.dic */')
+C
+C - RT perturbation
+C
+       CALL WRITE_0D_L(rt_do_pert,INDEX_NONE, 'rt_do_pert=',
+     &  ' /* Specify whether we do RT perturbation */')    
+
+       IF (rt_do_pert) THEN
+
+C READ LAT-LONS
+
+       CALL WRITE_0D_RL(rt_minlat,INDEX_NONE, 'rt_minlat =',
+     &  ' /* RT perturbation: min lat */')  
+    
+        IF (rt_minlat==UNSET_RL) THEN
+		WRITE(msgBuf,'(A)')
+     &    'DIC_READPARMS: rt_minlat not read from the file'
+        CALL PRINT_ERROR( msgBuf, myThid )
+        errCount = errCount + 1
+        ENDIF
+        
+        CALL WRITE_0D_RL(rt_maxlat,INDEX_NONE, 'rt_maxlat =',
+     &  ' /* RT perturbation: max lat */')  
+    
+        IF (rt_maxlat==UNSET_RL) THEN
+		WRITE(msgBuf,'(A)')
+     &    'DIC_READPARMS: rt_maxlat not read from the file'
+        CALL PRINT_ERROR( msgBuf, myThid )
+        errCount = errCount + 1
+        ENDIF
+        
+        CALL WRITE_0D_RL(rt_minlon,INDEX_NONE, 'rt_minlon =',
+     &  ' /* RT perturbation: min lon */')  
+    
+        IF (rt_minlon==UNSET_RL) THEN
+		WRITE(msgBuf,'(A)')
+     &    'DIC_READPARMS: rt_minlon not read from the file'
+        CALL PRINT_ERROR( msgBuf, myThid )
+        errCount = errCount + 1
+        ENDIF
+        
+        CALL WRITE_0D_RL(rt_maxlon,INDEX_NONE, 'rt_maxlon =',
+     &  ' /* RT perturbation: max lon */')  
+    
+        IF (rt_maxlon==UNSET_RL) THEN
+		WRITE(msgBuf,'(A)')
+     &    'DIC_READPARMS: rt_maxlon not read from the file'
+        CALL PRINT_ERROR( msgBuf, myThid )
+        errCount = errCount + 1
+        ENDIF
+            
+C READ TIME            
+                
+        CALL WRITE_0D_I(rt_mintime,INDEX_NONE, 'rt_mintime =',
+     &  ' /* RT perturbation: min time */')  
+    
+        IF (rt_mintime==UNSET_I) THEN
+		WRITE(msgBuf,'(A)')
+     &    'DIC_READPARMS: rt_mintime not read from the file'
+        CALL PRINT_ERROR( msgBuf, myThid )
+        errCount = errCount + 1
+        ENDIF
+        
+        CALL WRITE_0D_I(rt_maxtime,INDEX_NONE, 'rt_maxtime =',
+     &  ' /* RT perturbation: max time */')  
+    
+        IF (rt_maxlon==UNSET_I) THEN
+		WRITE(msgBuf,'(A)')
+     &    'DIC_READPARMS: rt_maxtime not read from the file'
+        CALL PRINT_ERROR( msgBuf, myThid )
+        errCount = errCount + 1
+        ENDIF         
+        
+        
+C READ FORCING TENDENCIES & Rs        
+        
+        CALL WRITE_0D_RL(rt_dic_tend,INDEX_NONE, 'rt_dic_tend =',
+     &  ' /* RT perturbation: dic tendency */')  
+    
+        IF (rt_dic_tend==UNSET_RL) THEN
+		WRITE(msgBuf,'(A)')
+     &    'DIC_READPARMS: rt_dic_tend not read from the file'
+        CALL PRINT_ERROR( msgBuf, myThid )
+        errCount = errCount + 1
+        ENDIF
+        
+        
+        CALL WRITE_0D_RL(rt_r_pc,INDEX_NONE, 'rt_r_pc =',
+     &  ' /* RT perturbation: R_p:c */')  
+    
+        IF (rt_maxlon==UNSET_RL) THEN
+		WRITE(msgBuf,'(A)')
+     &    'DIC_READPARMS: rt_r_pc not read from the file'
+        CALL PRINT_ERROR( msgBuf, myThid )
+        errCount = errCount + 1
+        ENDIF
+                
+        CALL WRITE_0D_RL(rt_r_np,INDEX_NONE, 'rt_r_np =',
+     &  ' /* RT perturbation: R_n:p */')  
+    
+        IF (rt_maxlon==UNSET_RL) THEN
+		WRITE(msgBuf,'(A)')
+     &    'DIC_READPARMS: rt_r_np not read from the file'
+        CALL PRINT_ERROR( msgBuf, myThid )
+        errCount = errCount + 1
+        ENDIF                
+
+! ENDIF rt_dopert
+	    ENDIF
+
 
 C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
 

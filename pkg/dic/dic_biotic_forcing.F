@@ -112,12 +112,9 @@ C  freefe                 :: iron not bound to ligand
 # endif
 #endif
 
-      LOGICAL do_tendency_mod      
-  	  INTEGER mod_istart,mod_iend
-  	  INTEGER mod_jstart,mod_jend
-      INTEGER mod_tstart,mod_tend
-	  REAL RT_dic_tend,RT_Rnp,RT_Rpc
-      CHARACTER(22) FILE_NAME
+      _RL lat_curr
+	  _RL lon_curr
+	  _RL dict_curr	
 
 CEOP
 
@@ -362,124 +359,52 @@ C include iron sediment source using the flux of po4 into bottom layer
         ENDDO
        ENDIF
 
-C update
-C       print *,"GDIC",myThid,bi,bj 
-C       print *,"i:",imin,iMax
-C       print *,'j:',jmin,jMax
-C       print *,'myiter',myIter
-C       print *,'mytime',mytime
-C       print *,'gdic_1',gdic(:,:,1)	
-C       print *,'gdic_Nr',gdic(:,:,Nr)	  
-C
-C
-C       if (myiter==5184039) then
-C   
-C        if ((bi == 1) .and. (bj == 1)) then 
-C         open (unit = 112, file = 'Output_1_1.txt')
-C   	    endif
-C   	   
-C   	    if ((bi == 1) .and. (bj == 2)) then 
-C         open (unit = 112, file = 'Output_1_2.txt')
-C   	    endif
-C   	   
-C   	   
-C   	    if ((bi == 2) .and. (bj == 1)) then 
-C         open (unit = 112, file = 'Output_2_1.txt')
-C   	    endif
-C   	   
-C   	   
-C   	    if ((bi == 2) .and. (bj == 2)) then 
-C         open (unit = 112, file = 'Output_2_2.txt')
-C   	    endif
-C   
-C   
-C       do j=jmin,jMax
-C         do i=imin,iMax
-C         	write(112,*) i,',',j,',',PTR_DIC(i,j,1)
-C         enddo
-C       enddo
-C       close(112)
-C       
-C       endif
-       
-             
-     
-     
-     
-C get biological forcing before we modify GPO4
-       
+
+C get biological forcing before modifying GPO4 with RT perturbation
+
          DO k=1,Nr
           DO j=jMin,jMax
           DO i=iMin,iMax
             GBIO(i,j,k)=R_CP*GPO4(i,j,k)  
+c            print *,maskInC(i,j,bi,bj),xc(i,j,bi,bj),yc(i,j,bi,bj)
+
            ENDDO
           ENDDO
          ENDDO
 
        
        
-       
-       IF ((bi == 1) .and. (bj == 1)) THEN
-          file_name = 'modify_chemistry11.txt'
-   	   ELSEIF ((bi == 1) .and. (bj == 2)) THEN 
-   	      file_name = 'modify_chemistry12.txt'
-   	   ELSEIF ((bi == 2) .and. (bj == 1)) THEN 
-   	     file_name = 'modify_chemistry21.txt'
-   	   ELSEIF ((bi == 2) .and. (bj == 2)) THEN 
-   	     file_name = 'modify_chemistry22.txt'
-   	   ENDIF
-   	  
-                
-        print *,'file_name',file_name
-        
-          
-      INQUIRE( FILE=file_name, EXIST=do_tendency_mod)
-      
-      IF (do_tendency_mod) THEN
-      
-C  READ DATA      
-         OPEN(222,FILE=file_name,FORM='FORMATTED') 
-	     READ(222,*) mod_istart,mod_iend
-         READ(222,*) mod_jstart,mod_jend
-         READ(222,*) mod_tstart,mod_tend
-	     READ(222,*) RT_dic_tend
-	     READ(222,*) RT_Rpc
-	     READ(222,*) RT_Rnp
-	     CLOSE(222) 
+     
 
+C
+C apply RT perturbation to GDIC, GALK, GPO4 tendencies
+C - all the data is read from the namelist -
 
-C	     PRINT *,'i:',mod_istart,mod_iend
-C         PRINT *,'j:', mod_jstart,mod_jend
-C         PRINT *, 't:', mod_tstart,mod_tend
-	     PRINT *, 'RT_dic_tend:', RT_dic_tend
-	     PRINT *, 'RT_Rpc:',RT_Rpc
-	     PRINT *, 'RT_Rnp:',RT_Rnp
+     	IF (rt_do_pert) THEN
+     	IF ((myiter .GE. rt_mintime) .AND. (myiter .LE. rt_maxtime)) THEN
+     
+       	DO I=iMin,iMax
+       	 DO J=jMin,jMax
+     
+           lon_curr=XC(I,J,bi,bj)
+           lat_curr=YC(I,J,bi,bj)
+     
+          IF    ((lon_curr .GE. rt_minlon) 
+     &      .AND. (lon_curr .LE. rt_maxlon) 
+     &      .AND. (lat_curr .GE. rt_minlat) 
+     &      .AND. (lat_curr .LE. rt_maxlat)) THEN
 
-
-
-
-
-
-
-
-C APPLY RT forcings to the upper ocean layer
-
-
-       IF ((myiter .ge. mod_tstart) .and. (myiter .lt. mod_tend)) THEN
-       
-        DO I=MOD_ISTART,MOD_IEND
-       	 DO J=MOD_JSTART,mod_jend
-       	 	GDIC(I,J,1)=GDIC(I,J,1)+RT_dic_tend
-       	 	GALK(I,J,1)=GALK(I,J,1)-RT_dic_tend*RT_Rpc*RT_Rnp
-       	    GPO4(I,J,1)=GPO4(I,J,1)+RT_dic_tend*RT_Rpc 
+C RT DIC tendency at current location     
+     		dict_curr=rt_dic_tend*maskInC(I,J,bi,bj)
+            GDIC(I,J,1)=GDIC(I,J,1)+dict_curr
+       	 	GALK(I,J,1)=GALK(I,J,1)-dict_curr*rt_r_pc*rt_r_np
+       	    GPO4(I,J,1)=GPO4(I,J,1)+dict_curr*rt_r_pc 
        	    RTdic(I,J,1)= RT_dic_tend
-       	 ENDDO 
-       	 ENDDO 	
-       
-       ENDIF 
-	
-	   ENDIF	
-		
+     	   ENDIF	
+     	  ENDDO
+     	 ENDDO		     
+     	ENDIF
+     	ENDIF
 		
 
        DO k=1,Nr

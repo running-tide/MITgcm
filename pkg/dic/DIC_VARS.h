@@ -233,6 +233,29 @@ C  dic_pCO2          :: atmospheric pCO2 to be read from data.dic
       INTEGER dic_int3
       INTEGER dic_int4
 
+      COMMON /DIC_RTPERT/
+     & rt_do_pert,
+     & rt_minlat,rt_minlon,rt_maxlat,rt_maxlon,
+     & rt_mintime,rt_maxtime,
+     & rt_dic_tend,rt_r_pc,rt_r_np
+
+C   PARAMETERS FOR RT PERTURBATION (rt_*)
+C    minlat,maxlat,minlon,maxlon : geographical coordinates for RT perturbation
+C     lon = [0,360], lat=[-90,90]
+C    mintime,maxtime: time steps (integers)
+C    dic_tend: dic tendency in mol/m3/s-1
+C    r_pc: Redfield ratio of P:C for macroalage (for plankton is often 1/117)
+C    r_np: Redfield ratio of N:P for macroalgae (for plamkton is often 16)
+      _RL      rt_minlat
+      _RL      rt_maxlat
+      _RL      rt_minlon
+      _RL      rt_maxlon
+      INTEGER rt_mintime
+      INTEGER rt_maxtime
+      _RL     rt_dic_tend
+      _RL     rt_r_pc
+      _RL     rt_r_np
+      LOGICAL rt_do_pert
 #ifdef DIC_BIOTIC
 C     *==========================================================*
 C     | o Biological Carbon Variables
